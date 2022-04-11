@@ -1,1 +1,1 @@
-import '~/elements/my-element';
+import '~/elements/telegram-voice-player';
