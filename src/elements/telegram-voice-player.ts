@@ -14,10 +14,12 @@ export class MyElement extends LitElement {
     :host {
       display: inline-block;
       font-family: sans-serif;
+      direction: ltr;
     }
 
     * {
       box-sizing: border-box;
+      user-select: none;
     }
 
     #container {
@@ -73,14 +75,22 @@ export class MyElement extends LitElement {
       align-items: flex-end;
       font-size: 11px;
       color: #5b5c88;
+      display: flex;
+      justify-content: space-between;
     }
   `;
+
+  @property({ type: String })
+  src = '';
 
   @property({ type: Boolean, attribute: false })
   isPlaying = false;
 
-  @property({ type: String })
-  src = '';
+  @property({ type: Number, attribute: false })
+  totalTime = 234;
+
+  @property({ type: Number, attribute: false })
+  currentTime = 0;
 
   override render() {
     return html`
@@ -107,7 +117,8 @@ export class MyElement extends LitElement {
         <div id="details">
           <canvas id="canvas"></canvas>
           <div id="info">
-            <span>03:24</span>
+            <span class="current">${this.formatTime(this.currentTime)}</span>
+            <span class="total">${this.formatTime(this.totalTime)}</span>
           </div>
         </div>
       </div>
@@ -192,6 +203,9 @@ export class MyElement extends LitElement {
     };
 
     const drawProgress = (ctx: CanvasRenderingContext2D, width: number, height: number, progress: number) => {
+      this.currentTime = Math.floor(progress * this.totalTime * 0.01);
+      this.currentTime = this.currentTime < 0 ? 0 : this.currentTime;
+
       ctx.globalCompositeOperation = 'source-atop';
       ctx.fillStyle = '#5b5c88';
       ctx.fillRect(0, height / -2, width, height);
@@ -220,6 +234,12 @@ export class MyElement extends LitElement {
     };
 
     visualizeAudio(this.src);
+  }
+
+  private formatTime(time: number) {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time - minutes * 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   }
 }
 
