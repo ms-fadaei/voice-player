@@ -1,0 +1,1 @@
+import '~/elements/my-element';
