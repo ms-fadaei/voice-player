@@ -117,6 +117,9 @@ export class MyElement extends LitElement {
   override connectedCallback() {
     super.connectedCallback();
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
     const audioContext = new AudioContext();
 
     const visualizeAudio = (url: string) => {
