@@ -139,6 +139,7 @@ export class TelegramVoicePlayer extends LitElement {
   `;
 
   @property({ type: String }) src = '';
+  @property({ type: Number }) bars = 64;
   @property({ type: Boolean, attribute: false }) initiated = false;
   @property({ type: Boolean, attribute: false }) isPlaying = false;
   @property({ type: Number, attribute: false }) totalTime = 234;
@@ -173,7 +174,7 @@ export class TelegramVoicePlayer extends LitElement {
 
   override firstUpdated() {
     const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
-    const data = new Array(50).fill(0);
+    const data = new Array(this.bars).fill(0);
     const color = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
     if (!this.initiated) setupCanvas(canvas);
     drawBars(canvas, data, 2 / 9, color, false, true);
@@ -197,7 +198,7 @@ export class TelegramVoicePlayer extends LitElement {
 
   private async _drawAudioBars(audioBuffer: AudioBuffer) {
     const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
-    const filteredData = filterData(audioBuffer, 50);
+    const filteredData = filterData(audioBuffer, this.bars);
     const normalizedData = normalizeData(filteredData);
     const color = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
     await drawBars(canvas, normalizedData, 2 / 9, color, true, true);
