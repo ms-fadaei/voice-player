@@ -44,6 +44,7 @@ export async function drawBars(
 
     // draw
     ctx.clearRect(x, maxHeight * -1, totalWidth, mirrored ? maxHeight * 2 : maxHeight);
+    ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = color;
     ctx.fillRect(x, height * -1, bodyWidth, mirrored ? height * 2 : height);
     ctx.beginPath();
