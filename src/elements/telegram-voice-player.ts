@@ -2,18 +2,11 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { durationToTime } from '~/utils/time';
 import { getCssCustomVariable } from '~/utils/style';
-import { drawBars } from '~/utils/draw';
+import { setupCanvas, drawBars } from '~/utils/draw';
 import playSvg from '~/assets/svg/play';
 import pauseSvg from '~/assets/svg/pause';
 import loadingSpinnerSvg from '~/assets/svg/loading-spinner';
 
-/**
- * An example element.
- *
- * @fires count-changed - Indicates when the count changes
- * @slot - This element has a slot
- * @csspart button - The button
- */
 @customElement('telegram-voice-player')
 export class TelegramVoicePlayer extends LitElement {
   static override styles = css`
@@ -143,6 +136,7 @@ export class TelegramVoicePlayer extends LitElement {
   `;
 
   @property({ type: String }) src = '';
+  @property({ type: Boolean, attribute: false }) initiated = false;
   @property({ type: Boolean, attribute: false }) isPlaying = false;
   @property({ type: Number, attribute: false }) totalTime = 234;
   @property({ type: Number, attribute: false }) currentTime = 0;
@@ -185,29 +179,61 @@ export class TelegramVoicePlayer extends LitElement {
       .then((response) => response.arrayBuffer())
       .then((arrayBuffer) => audioContext.decodeAudioData(arrayBuffer))
       .then((audioBuffer) => this._drawAudioBars(audioBuffer))
-      .then(() => this._setupAudio());
+      .then(() => this._setupProgressEvents())
+      .then(() => this._setupAudio())
+      .then(() => (this.initiated = true));
   }
 
   private async _drawAudioBars(audioBuffer: AudioBuffer) {
     const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
     const color = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
+    if (!this.initiated) setupCanvas(canvas);
     await drawBars(canvas, audioBuffer, 50, 2 / 9, color, true);
+  }
 
+  private _setupProgressEvents() {
+    if (this.initiated) return;
+
+    const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
+    let lmbActive = false;
     const onProgressChange = (progress: number) => {
       this.audio.currentTime = progress * this.totalTime * 0.01;
     };
 
-    let isLbPressed = false;
+    window.addEventListener('mouseup', () => {
+      lmbActive = false;
+    });
+
     canvas.addEventListener('mousedown', (e) => {
-      isLbPressed = true;
+      lmbActive = true;
       onProgressChange((e.offsetX / canvas.offsetWidth) * 100);
     });
-    canvas.addEventListener('mouseup', () => (isLbPressed = false));
-    canvas.addEventListener('mousemove', (e) => {
-      if (isLbPressed) {
-        onProgressChange((e.offsetX / canvas.offsetWidth) * 100);
-      }
-    });
+
+    /* eslint-disable prettier/prettier */
+    window.addEventListener(
+      'mousemove',
+      (e) => {
+        if (!lmbActive) return;
+
+        const boundingRect = canvas.getBoundingClientRect();
+        const leftSide = boundingRect.left;
+        const rightSide = boundingRect.left + boundingRect.width;
+
+        const progress = e.clientX;
+        let progressPercentage = 0;
+        if (progress < leftSide) {
+          progressPercentage = 0;
+        } else if (progress > rightSide) {
+          progressPercentage = 100;
+        } else {
+          progressPercentage = ((progress - leftSide) / (rightSide - leftSide)) * 100;
+        }
+
+        onProgressChange(progressPercentage);
+      },
+      { passive: true }
+    );
+    /* eslint-enable prettier/prettier */
   }
 
   private _drawAudioProgress(progress: number) {

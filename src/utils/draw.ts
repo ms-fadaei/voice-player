@@ -29,7 +29,6 @@ export async function drawBars(
   const bodyWidth = totalWidth - gapWidth;
   totalWidth += gapWidth / count;
 
-  setupCanvas(canvas);
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   ctx.translate(0, mirrored ? canvas.offsetHeight / 2 : canvas.offsetHeight);
 
