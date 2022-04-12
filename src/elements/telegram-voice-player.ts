@@ -22,9 +22,10 @@ export class TelegramVoicePlayer extends LitElement {
       font-family: sans-serif;
       direction: ltr;
 
-      --container-bg-color: #1566a3;
-      --play-btn-bg-color: #fff;
-      --play-btn-text-color: #1566a3;
+      --container-border-radius: 14px;
+      --container-background: #1566a3;
+      --play-btn-background: #fff;
+      --play-btn-color: #1566a3;
       --text-color: #b7d9f3;
       --sound-bar-color: #b7d9f3;
       --sound-progress-color: #fff;
@@ -38,8 +39,8 @@ export class TelegramVoicePlayer extends LitElement {
     #container {
       width: 268px;
       height: 62px;
-      background: var(--container-bg-color);
-      border-radius: 14px;
+      background: var(--container-background);
+      border-radius: var(--container-border-radius);
       padding: 8px 10px;
       display: flex;
       align-items: center;
@@ -50,7 +51,7 @@ export class TelegramVoicePlayer extends LitElement {
       flex: 0 0 auto;
       width: 45px;
       height: 45px;
-      background: var(--play-btn-bg-color);
+      background: var(--play-btn-background);
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -58,7 +59,7 @@ export class TelegramVoicePlayer extends LitElement {
       margin-right: 15px;
       border: none;
       cursor: pointer;
-      color: var(--play-btn-text-color);
+      color: var(--play-btn-color);
       padding: 0;
     }
 
