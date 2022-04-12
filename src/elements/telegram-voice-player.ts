@@ -191,7 +191,7 @@ export class TelegramVoicePlayer extends LitElement {
   private async _drawAudioBars(audioBuffer: AudioBuffer) {
     const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
     const color = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
-    await drawBars(canvas, audioBuffer, 100, 2 / 9, color, true);
+    await drawBars(canvas, audioBuffer, 50, 2 / 9, color, true);
 
     const onProgressChange = (progress: number) => {
       this.audio.currentTime = progress * this.totalTime * 0.01;
