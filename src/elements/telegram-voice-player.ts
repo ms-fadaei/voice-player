@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { durationToTime } from '~/utils/time';
+import { filterData, normalizeData } from '~/utils/audio';
 import { getCssCustomVariable } from '~/utils/style';
 import { setupCanvas, drawBars } from '~/utils/draw';
 import playSvg from '~/assets/svg/play';
@@ -155,12 +156,10 @@ export class TelegramVoicePlayer extends LitElement {
         </button>
         <div id="details">
           <canvas id="canvas"></canvas>
-          ${this.hasLoaded
-            ? html`<div id="info">
-                <span class="current">${durationToTime(this.currentTime)}</span>
-                <span class="total">${durationToTime(this.totalTime)}</span>
-              </div>`
-            : null}
+          <div id="info">
+            <span class="current">${this.hasLoaded ? durationToTime(this.currentTime) : '--:--'}</span>
+            <span class="total">${this.hasLoaded ? durationToTime(this.totalTime) : '--:--'}</span>
+          </div>
         </div>
       </div>
     `;
@@ -168,7 +167,16 @@ export class TelegramVoicePlayer extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
+
     this._loadAudio();
+  }
+
+  override firstUpdated() {
+    const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
+    const data = new Array(50).fill(0);
+    const color = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
+    if (!this.initiated) setupCanvas(canvas);
+    drawBars(canvas, data, 2 / 9, color, false, true);
   }
 
   private _loadAudio() {
@@ -179,17 +187,20 @@ export class TelegramVoicePlayer extends LitElement {
     fetch(this.src)
       .then((response) => response.arrayBuffer())
       .then((arrayBuffer) => audioContext.decodeAudioData(arrayBuffer))
-      .then((audioBuffer) => this._drawAudioBars(audioBuffer))
+      .then((audioBuffer) => {
+        this._setupAudio();
+        return this._drawAudioBars(audioBuffer);
+      })
       .then(() => this._setupProgressEvents())
-      .then(() => this._setupAudio())
       .then(() => (this.initiated = true));
   }
 
   private async _drawAudioBars(audioBuffer: AudioBuffer) {
     const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
+    const filteredData = filterData(audioBuffer, 50);
+    const normalizedData = normalizeData(filteredData);
     const color = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
-    if (!this.initiated) setupCanvas(canvas);
-    await drawBars(canvas, audioBuffer, 50, 2 / 9, color, true);
+    await drawBars(canvas, normalizedData, 2 / 9, color, true, true);
   }
 
   private _setupProgressEvents() {
@@ -257,7 +268,7 @@ export class TelegramVoicePlayer extends LitElement {
 
     this.audio.addEventListener('timeupdate', () => {
       this.currentTime = this.audio.currentTime;
-      this._drawAudioProgress(Math.floor((this.audio.currentTime / this.audio.duration) * 100));
+      this._drawAudioProgress((this.audio.currentTime / this.audio.duration) * 100);
     });
 
     this.audio.addEventListener('loadedmetadata', () => {

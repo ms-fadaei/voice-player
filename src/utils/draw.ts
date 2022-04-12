@@ -1,5 +1,3 @@
-import { filterData, normalizeData } from '~/utils/audio';
-
 export function setupCanvas(canvas: HTMLCanvasElement) {
   // set dpr
   const dpr = window.devicePixelRatio || 1;
@@ -9,20 +7,17 @@ export function setupCanvas(canvas: HTMLCanvasElement) {
   // config context
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   ctx.scale(dpr, dpr);
-  ctx.save();
 }
 
 export async function drawBars(
   canvas: HTMLCanvasElement,
-  audioBuffer: AudioBuffer,
-  count: number,
+  data: number[],
   gapRatio: number,
   color: string,
+  asyncProgress = true,
   mirrored = false
 ) {
-  const filteredData = filterData(audioBuffer, count);
-  const normalizedData = normalizeData(filteredData);
-
+  const count = data.length;
   // calculate bars width
   let totalWidth = canvas.offsetWidth / count;
   const gapWidth = totalWidth * gapRatio;
@@ -30,12 +25,13 @@ export async function drawBars(
   totalWidth += gapWidth / count;
 
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  ctx.save();
   ctx.translate(0, mirrored ? canvas.offsetHeight / 2 : canvas.offsetHeight);
 
   for (let i = 0; i < count; i++) {
     const x = totalWidth * i;
     const maxHeight = mirrored ? canvas.offsetHeight / 2 : canvas.offsetHeight;
-    let height = normalizedData[i] * canvas.offsetHeight;
+    let height = data[i] * canvas.offsetHeight;
     if (mirrored) height /= 2;
 
     if (height < 0) {
@@ -44,9 +40,10 @@ export async function drawBars(
       height = maxHeight - bodyWidth / 2;
     }
 
-    await asyncRequestAnimationFrame();
+    if (asyncProgress) await asyncRequestAnimationFrame();
 
     // draw
+    ctx.clearRect(0, maxHeight * -1, totalWidth, mirrored ? maxHeight * 2 : maxHeight);
     ctx.fillStyle = color;
     ctx.fillRect(x, height * -1, bodyWidth, mirrored ? height * 2 : height);
     ctx.beginPath();
