@@ -156,7 +156,7 @@ export class TelegramVoicePlayer extends LitElement {
         <div id="details">
           <canvas id="canvas"></canvas>
           ${this.hasLoaded
-            ? html` <div id="info">
+            ? html`<div id="info">
                 <span class="current">${durationToTime(this.currentTime)}</span>
                 <span class="total">${durationToTime(this.totalTime)}</span>
               </div>`
@@ -168,7 +168,6 @@ export class TelegramVoicePlayer extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
-
     this._loadAudio();
   }
 
@@ -289,7 +288,7 @@ export class TelegramVoicePlayer extends LitElement {
   }
 
   private _playOrPause() {
-    if (this.audio.readyState === HTMLMediaElement.HAVE_ENOUGH_DATA) {
+    if (this.audio.readyState >= 2) {
       this.isPlaying = !this.isPlaying;
       if (this.isPlaying) {
         this.audio.play();
