@@ -16,10 +16,19 @@
         align-items: center;
         justify-content: center;
       }
+
+      .player {
+        --container-bg-color: #212145;
+        --play-btn-bg-color: #5562ff;
+        --play-btn-text-color: #fff;
+        --text-color: #5b5c88;
+        --sound-bar-color: #5b5c88;
+        --sound-progress-color: #5562ff;
+      }
     </style>
   </head>
   <body>
-    <telegram-voice-player src="/audio.mp3" name="World"></telegram-voice-player>
+    <telegram-voice-player src="/audio.mp3" class="player"></telegram-voice-player>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

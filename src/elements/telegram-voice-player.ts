@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { durationToTime } from '~/utils/time';
 import { filterData, normalizeData } from '~/utils/audio';
+import { getCssCustomVariable } from '~/utils/style';
 import playSvg from '~/assets/svg/play';
 import pauseSvg from '~/assets/svg/pause';
 import loadingSpinnerSvg from '~/assets/svg/loading-spinner';
@@ -20,6 +21,13 @@ export class TelegramVoicePlayer extends LitElement {
       display: inline-block;
       font-family: sans-serif;
       direction: ltr;
+
+      --container-bg-color: #1566a3;
+      --play-btn-bg-color: #fff;
+      --play-btn-text-color: #1566a3;
+      --text-color: #b7d9f3;
+      --sound-bar-color: #b7d9f3;
+      --sound-progress-color: #fff;
     }
 
     * {
@@ -30,7 +38,7 @@ export class TelegramVoicePlayer extends LitElement {
     #container {
       width: 268px;
       height: 62px;
-      background: #212145;
+      background: var(--container-bg-color);
       border-radius: 14px;
       padding: 8px 10px;
       display: flex;
@@ -42,7 +50,7 @@ export class TelegramVoicePlayer extends LitElement {
       flex: 0 0 auto;
       width: 45px;
       height: 45px;
-      background: #5562ff;
+      background: var(--play-btn-bg-color);
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -50,7 +58,7 @@ export class TelegramVoicePlayer extends LitElement {
       margin-right: 15px;
       border: none;
       cursor: pointer;
-      color: #fff;
+      color: var(--play-btn-text-color);
       padding: 0;
     }
 
@@ -103,7 +111,7 @@ export class TelegramVoicePlayer extends LitElement {
       width: 100%;
       align-items: flex-end;
       font-size: 11px;
-      color: #5b5c88;
+      color: var(--text-color);
       display: flex;
       justify-content: space-between;
     }
@@ -205,7 +213,7 @@ export class TelegramVoicePlayer extends LitElement {
 
       await new Promise((resolve) => {
         requestAnimationFrame(() => {
-          ctx.fillStyle = '#5b5c88';
+          ctx.fillStyle = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
           ctx.fillRect(x, height / -2, width * bodyRatio, height);
           ctx.beginPath();
           ctx.arc(x + (width * bodyRatio) / 2, height / 2, (width * bodyRatio) / 2, 0, Math.PI * 2);
@@ -241,10 +249,10 @@ export class TelegramVoicePlayer extends LitElement {
     const height = canvas.offsetHeight;
 
     ctx.globalCompositeOperation = 'source-atop';
-    ctx.fillStyle = '#5b5c88';
+    ctx.fillStyle = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
     ctx.fillRect(0, height / -2, width, height);
 
-    ctx.fillStyle = '#5562ff';
+    ctx.fillStyle = getCssCustomVariable(this.renderRoot, 'sound-progress-color');
     ctx.fillRect(0, height / -2, (width * progress) / 100, height);
   }
 
