@@ -43,7 +43,7 @@ export async function drawBars(
     if (asyncProgress) await asyncRequestAnimationFrame();
 
     // draw
-    ctx.clearRect(0, maxHeight * -1, totalWidth, mirrored ? maxHeight * 2 : maxHeight);
+    ctx.clearRect(x, maxHeight * -1, totalWidth, mirrored ? maxHeight * 2 : maxHeight);
     ctx.fillStyle = color;
     ctx.fillRect(x, height * -1, bodyWidth, mirrored ? height * 2 : height);
     ctx.beginPath();
