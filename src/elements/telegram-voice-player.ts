@@ -231,8 +231,8 @@ export class TelegramVoicePlayer extends LitElement {
     this.audio.loop = false;
 
     this.audio.addEventListener('timeupdate', () => {
-      this.currentTime = Math.floor((this.audio.currentTime / this.audio.duration) * 100);
-      this._drawAudioProgress(this.currentTime);
+      this.currentTime = this.audio.currentTime;
+      this._drawAudioProgress(Math.floor((this.audio.currentTime / this.audio.duration) * 100));
     });
 
     this.audio.addEventListener('loadedmetadata', () => {
