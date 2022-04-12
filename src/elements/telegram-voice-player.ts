@@ -18,7 +18,7 @@ export class TelegramVoicePlayer extends LitElement {
       font-size: 16px;
       width: 300px;
 
-      --container-border-radius: 14px;
+      --container-border-radius: 0.875em;
       --container-background: #1566a3;
       --play-btn-background: #fff;
       --play-btn-color: #1566a3;
