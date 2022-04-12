@@ -14,6 +14,8 @@ export class TelegramVoicePlayer extends LitElement {
       display: inline-block;
       font-family: sans-serif;
       direction: ltr;
+      font-size: 16px;
+      width: 300px;
 
       --container-border-radius: 14px;
       --container-background: #1566a3;
@@ -30,26 +32,26 @@ export class TelegramVoicePlayer extends LitElement {
     }
 
     #container {
-      width: 268px;
-      height: 62px;
+      height: 4em;
       background: var(--container-background);
       border-radius: var(--container-border-radius);
-      padding: 8px 10px;
+      padding: 0.5em 0.625em;
       display: flex;
       align-items: center;
       flex-wrap: nowrap;
     }
 
     #play {
+      font-size: 1em;
       flex: 0 0 auto;
-      width: 45px;
-      height: 45px;
+      width: 3em;
+      height: 3em;
       background: var(--play-btn-background);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-right: 15px;
+      margin-right: 1em;
       border: none;
       cursor: pointer;
       color: var(--play-btn-color);
@@ -61,8 +63,8 @@ export class TelegramVoicePlayer extends LitElement {
     }
 
     #play > svg {
-      width: 15px;
-      height: 15px;
+      width: 1em;
+      height: 1em;
     }
 
     #play > .play-icon {
@@ -71,8 +73,8 @@ export class TelegramVoicePlayer extends LitElement {
     }
 
     #play > .loading-icon {
-      width: 35px;
-      height: 35px;
+      width: 2em;
+      height: 2em;
       transition: all 0.3s ease 0s;
       transform-origin: center center;
       animation: rotate 1.5s linear infinite;
@@ -95,16 +97,16 @@ export class TelegramVoicePlayer extends LitElement {
     #canvas {
       flex: 0 0 auto;
       width: 100%;
-      height: 30px;
+      height: 2em;
       cursor: pointer;
     }
 
     #info {
-      margin-top: 5px;
+      margin-top: 0.33em;
       flex: 1 1 100%;
       width: 100%;
       align-items: flex-end;
-      font-size: 11px;
+      font-size: 0.7em;
       color: var(--text-color);
       display: flex;
       justify-content: space-between;
@@ -209,7 +211,6 @@ export class TelegramVoicePlayer extends LitElement {
       onProgressChange((e.offsetX / canvas.offsetWidth) * 100);
     });
 
-    /* eslint-disable prettier/prettier */
     window.addEventListener(
       'mousemove',
       (e) => {
@@ -233,7 +234,6 @@ export class TelegramVoicePlayer extends LitElement {
       },
       { passive: true }
     );
-    /* eslint-enable prettier/prettier */
   }
 
   private _drawAudioProgress(progress: number) {
