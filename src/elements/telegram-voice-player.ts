@@ -77,8 +77,8 @@ export class TelegramVoicePlayer extends LitElement {
     }
 
     #play > .loading-icon {
-      width: 40px;
-      height: 40px;
+      width: 35px;
+      height: 35px;
       transition: all 0.3s ease 0s;
       transform-origin: center center;
       animation: rotate 1.5s linear infinite;
@@ -146,18 +146,19 @@ export class TelegramVoicePlayer extends LitElement {
   @property({ type: Number, attribute: false }) totalTime = 234;
   @property({ type: Number, attribute: false }) currentTime = 0;
   @property({ type: Boolean, attribute: false }) isPending = true;
-  @property({ type: Boolean, attribute: false }) isLoaded = false;
+  @property({ type: Boolean, attribute: false }) hasLoaded = false;
+  @property({ type: Boolean, attribute: false }) hasError = false;
   @property({ attribute: false }) audio = new Audio();
 
   override render() {
     return html`
       <div id="container">
-        <button id="play" @click=${this._playOrPause} ?disabled=${!this.isLoaded}>
+        <button id="play" @click=${this._playOrPause} ?disabled=${!this.hasLoaded}>
           ${this.isPending ? loadingSpinnerSvg : this.isPlaying ? pauseSvg : playSvg}
         </button>
         <div id="details">
           <canvas id="canvas"></canvas>
-          ${this.isLoaded
+          ${this.hasLoaded
             ? html` <div id="info">
                 <span class="current">${durationToTime(this.currentTime)}</span>
                 <span class="total">${durationToTime(this.totalTime)}</span>
@@ -259,6 +260,7 @@ export class TelegramVoicePlayer extends LitElement {
   private _setupAudio() {
     this.audio = new Audio();
     this.audio.src = this.src;
+    this.audio.loop = false;
 
     this.audio.addEventListener('timeupdate', () => {
       this.currentTime = Math.floor((this.audio.currentTime / this.audio.duration) * 100);
@@ -268,8 +270,25 @@ export class TelegramVoicePlayer extends LitElement {
     this.audio.addEventListener('loadedmetadata', () => {
       this.totalTime = this.audio.duration;
       this.currentTime = 0;
-      this.isLoaded = true;
+    });
+
+    this.audio.addEventListener('loadeddata', () => {
+      if (this.audio.readyState >= 2) {
+        this.isPending = false;
+        this.hasLoaded = true;
+        this.hasError = false;
+      }
+    });
+
+    this.audio.addEventListener('ended', () => {
+      this.audio.currentTime = 0;
+      this.isPlaying = false;
+    });
+
+    this.audio.addEventListener('error', () => {
+      this.hasLoaded = false;
       this.isPending = false;
+      this.hasError = true;
     });
   }
 
