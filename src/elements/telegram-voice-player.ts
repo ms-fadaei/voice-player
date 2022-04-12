@@ -139,7 +139,8 @@ export class TelegramVoicePlayer extends LitElement {
   `;
 
   @property({ type: String }) src = '';
-  @property({ type: Number }) bars = 64;
+  @property({ type: Number, reflect: true }) bars = 64;
+  @property({ type: Boolean, reflect: true }) mirroredBars = true;
   @property({ type: Boolean, attribute: false }) initiated = false;
   @property({ type: Boolean, attribute: false }) isPlaying = false;
   @property({ type: Number, attribute: false }) totalTime = 234;
@@ -148,6 +149,7 @@ export class TelegramVoicePlayer extends LitElement {
   @property({ type: Boolean, attribute: false }) hasLoaded = false;
   @property({ type: Boolean, attribute: false }) hasError = false;
   @property({ attribute: false }) audio = new Audio();
+  @property({ attribute: false }) audioBuffer?: AudioBuffer;
 
   override render() {
     return html`
@@ -168,8 +170,6 @@ export class TelegramVoicePlayer extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
-
-    this._loadAudio();
   }
 
   override firstUpdated() {
@@ -177,7 +177,22 @@ export class TelegramVoicePlayer extends LitElement {
     const data = new Array(this.bars).fill(0);
     const color = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
     if (!this.initiated) setupCanvas(canvas);
-    drawBars(canvas, data, 2 / 9, color, { async: false, mirror: true });
+    drawBars(canvas, data, 2 / 9, color, { async: false, mirror: this.mirroredBars });
+
+    this._loadAudio();
+  }
+
+  override updated(changed: Map<string, unknown>) {
+    if (!this.initiated) return;
+
+    if (changed.has('bars') || changed.has('mirroredBars')) {
+      const normalizeData = this._processAudio(this.audioBuffer as AudioBuffer);
+      this._drawAudioBars(normalizeData);
+    }
+
+    if (changed.has('src')) {
+      this._loadAudio();
+    }
   }
 
   private _loadAudio() {
@@ -188,20 +203,26 @@ export class TelegramVoicePlayer extends LitElement {
     fetch(this.src)
       .then((response) => response.arrayBuffer())
       .then((arrayBuffer) => audioContext.decodeAudioData(arrayBuffer))
-      .then((audioBuffer) => {
+      .then((arrayBuffer) => this._processAudio(arrayBuffer))
+      .then((normalizeData) => {
         this._setupAudio();
-        return this._drawAudioBars(audioBuffer);
+        return this._drawAudioBars(normalizeData);
       })
       .then(() => this._setupProgressEvents())
       .then(() => (this.initiated = true));
   }
 
-  private async _drawAudioBars(audioBuffer: AudioBuffer) {
-    const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
+  private _processAudio(audioBuffer: AudioBuffer) {
+    this.audioBuffer = audioBuffer;
     const filteredData = filterData(audioBuffer, this.bars);
     const normalizedData = normalizeData(filteredData);
+    return normalizedData;
+  }
+
+  private async _drawAudioBars(normalizedData: number[]) {
+    const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
     const color = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
-    await drawBars(canvas, normalizedData, 2 / 9, color, { async: true, mirror: true });
+    await drawBars(canvas, normalizedData, 2 / 9, color, { async: false, mirror: this.mirroredBars });
   }
 
   private _setupProgressEvents() {
