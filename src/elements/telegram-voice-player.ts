@@ -1,8 +1,8 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 import { durationToTime } from '~/utils/time';
-import { filterData, normalizeData } from '~/utils/audio';
 import { getCssCustomVariable } from '~/utils/style';
+import { drawBars } from '~/utils/draw';
 import playSvg from '~/assets/svg/play';
 import pauseSvg from '~/assets/svg/pause';
 import loadingSpinnerSvg from '~/assets/svg/loading-spinner';
@@ -188,43 +188,9 @@ export class TelegramVoicePlayer extends LitElement {
   }
 
   private async _drawAudioBars(audioBuffer: AudioBuffer) {
-    const filteredData = filterData(audioBuffer, 50);
-    const normalizedData = normalizeData(filteredData);
-
     const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
-    const dpr = window.devicePixelRatio || 1;
-    const width = canvas.offsetWidth / normalizedData.length;
-    canvas.width = canvas.offsetWidth * dpr;
-    canvas.height = canvas.offsetHeight * dpr;
-
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    ctx.scale(dpr, dpr);
-    ctx.translate(0, canvas.offsetHeight / 2);
-
-    const bodyRatio = 2 / 3;
-
-    for (let i = 0; i < normalizedData.length; i++) {
-      const x = width * i;
-      let height = normalizedData[i] * canvas.offsetHeight;
-      if (height < 0) {
-        height = 0;
-      } else if (height + width / 2 > canvas.offsetHeight) {
-        height = canvas.offsetHeight - width / 2;
-      }
-
-      await new Promise((resolve) => {
-        requestAnimationFrame(() => {
-          ctx.fillStyle = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
-          ctx.fillRect(x, height / -2, width * bodyRatio, height);
-          ctx.beginPath();
-          ctx.arc(x + (width * bodyRatio) / 2, height / 2, (width * bodyRatio) / 2, 0, Math.PI * 2);
-          ctx.arc(x + (width * bodyRatio) / 2, height / -2, (width * bodyRatio) / 2, 0, Math.PI * 2);
-          ctx.fill();
-
-          resolve(true);
-        });
-      });
-    }
+    const color = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
+    await drawBars(canvas, audioBuffer, 100, 2 / 9, color, true);
 
     const onProgressChange = (progress: number) => {
       this.audio.currentTime = progress * this.totalTime * 0.01;
@@ -251,14 +217,15 @@ export class TelegramVoicePlayer extends LitElement {
 
     ctx.globalCompositeOperation = 'source-atop';
     ctx.fillStyle = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
-    ctx.fillRect(0, height / -2, width, height);
+    ctx.fillRect(0, 0, width, height);
 
     ctx.fillStyle = getCssCustomVariable(this.renderRoot, 'sound-progress-color');
-    ctx.fillRect(0, height / -2, (width * progress) / 100, height);
+    ctx.fillRect(0, 0, (width * progress) / 100, height);
   }
 
   private _setupAudio() {
     this.audio = new Audio();
+    this.audio.autoplay = false;
     this.audio.src = this.src;
     this.audio.loop = false;
 
