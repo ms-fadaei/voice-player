@@ -3,7 +3,13 @@ export function filterData(audioBuffer: AudioBuffer, samples: number): number[] 
   const blockSize = Math.floor(rawData.length / samples);
   const filteredData = [];
   for (let i = 0; i < samples; i++) {
-    filteredData.push(Math.abs(rawData[i * blockSize]));
+    let sumOfRandomData = 0;
+    const samplesCount = blockSize < 16 ? blockSize : 16;
+    for (let j = 0; j < samplesCount; j++) {
+      const randomIndex = Math.floor(Math.random() * blockSize) + i * blockSize;
+      sumOfRandomData += Math.abs(rawData[randomIndex]);
+    }
+    filteredData.push(sumOfRandomData / samplesCount);
   }
 
   return filteredData;
