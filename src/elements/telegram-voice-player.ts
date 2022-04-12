@@ -249,8 +249,10 @@ export class TelegramVoicePlayer extends LitElement {
     });
 
     this.audio.addEventListener('ended', () => {
-      this.audio.currentTime = 0;
-      this.isPlaying = false;
+      if (!this.audio.paused) {
+        this.audio.currentTime = 0;
+        this.isPlaying = false;
+      }
     });
 
     this.audio.addEventListener('error', () => {
