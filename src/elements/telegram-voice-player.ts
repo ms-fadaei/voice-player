@@ -285,7 +285,7 @@ export class TelegramVoicePlayer extends LitElement {
     });
 
     this.audio.addEventListener('ended', () => {
-      if (!this.audio.paused) {
+      if (this.isPlaying) {
         this.audio.currentTime = 0;
         this.isPlaying = false;
       }
