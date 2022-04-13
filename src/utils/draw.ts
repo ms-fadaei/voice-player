@@ -68,12 +68,12 @@ export async function drawCircularWave(canvas: HTMLCanvasElement, data: number[]
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   ctx.save();
 
-  const newData: number[] = [];
-  data.forEach((value, i) => {
-    newData[randomIndex[i]] = value;
-  });
+  // const newData: number[] = [];
+  // data.forEach((value, i) => {
+  //   newData[randomIndex[i]] = value;
+  // });
 
-  // const newData = [...data];
+  const newData = [...data.reverse(), ...data.reverse()];
   const count = newData.length;
 
   if (count === 0) return;
@@ -81,14 +81,14 @@ export async function drawCircularWave(canvas: HTMLCanvasElement, data: number[]
   const maxHeight = canvas.offsetHeight / 2;
   ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
   ctx.translate(canvas.offsetWidth / 2, canvas.offsetHeight / 2);
-  ctx.fillStyle = '#ffffff44';
-  ctx.strokeStyle = '#ffffff99';
-  ctx.lineWidth = 1;
+  ctx.fillStyle = '#fff5';
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 0.25;
 
-  const reserveRadius = 0.6;
+  const reserveRadius = 0.5;
   const power = 1 / (1 - reserveRadius);
 
-  const cords = newData.map((d, i) => {
+  let cords = newData.map((d, i) => {
     const c = (d / power + reserveRadius) * maxHeight;
     const r = (2 * Math.PI * i) / count;
     const x = Math.cos(r) * c;
@@ -110,6 +110,51 @@ export async function drawCircularWave(canvas: HTMLCanvasElement, data: number[]
   ctx.quadraticCurveTo(cords[count - 1].x, cords[count - 1].y, cords[0].x, cords[0].y);
   ctx.fill();
   ctx.stroke();
+
+  cords = newData.map((d, i) => {
+    const c = (d / power + reserveRadius) * maxHeight;
+    const r = (2 * Math.PI * i) / count + (Math.PI * 2) / 3;
+    const x = Math.cos(r) * c;
+    const y = Math.sin(r) * c;
+
+    return { x, y };
+  });
+
+  ctx.beginPath();
+  ctx.moveTo(cords[0].x, cords[0].y);
+
+  for (let i = 1; i < count - 2; i++) {
+    const xc = (cords[i].x + cords[i + 1].x) / 2;
+    const yc = (cords[i].y + cords[i + 1].y) / 2;
+    ctx.quadraticCurveTo(cords[i].x, cords[i].y, xc, yc);
+  }
+
+  ctx.quadraticCurveTo(cords[0].x, cords[0].y, cords[1].x, cords[1].y);
+  ctx.fill();
+  ctx.stroke();
+
+  cords = newData.map((d, i) => {
+    const c = (d / power + reserveRadius) * maxHeight;
+    const r = (2 * Math.PI * i) / count + (Math.PI * 4) / 3;
+    const x = Math.cos(r) * c;
+    const y = Math.sin(r) * c;
+
+    return { x, y };
+  });
+
+  ctx.beginPath();
+  ctx.moveTo(cords[0].x, cords[0].y);
+
+  for (let i = 1; i < count - 2; i++) {
+    const xc = (cords[i].x + cords[i + 1].x) / 2;
+    const yc = (cords[i].y + cords[i + 1].y) / 2;
+    ctx.quadraticCurveTo(cords[i].x, cords[i].y, xc, yc);
+  }
+
+  ctx.quadraticCurveTo(cords[0].x, cords[0].y, cords[1].x, cords[1].y);
+  ctx.fill();
+  ctx.stroke();
+
   ctx.restore();
 }
 
