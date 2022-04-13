@@ -93,21 +93,29 @@ export class TelegramVoicePlayer extends LitElement {
       height: 100%;
       display: flex;
       flex-direction: column;
+      flex-wrap: nowrap;
+      height: 100%;
     }
 
     #canvas {
-      flex: 0 0 auto;
+      flex: 1 1 auto;
+      height: 0;
       width: 100%;
-      height: 2em;
       cursor: pointer;
+      margin: 0.2em 0;
+    }
+
+    #canvas.mirrored {
+      margin: 0;
     }
 
     #info {
       margin-top: 0.33em;
-      flex: 1 1 100%;
+      flex: 0 0 auto;
       width: 100%;
       align-items: flex-end;
       font-size: 0.7em;
+      line-height: 1.25em;
       color: var(--text-color);
       display: flex;
       justify-content: space-between;
@@ -158,7 +166,7 @@ export class TelegramVoicePlayer extends LitElement {
           ${this.isPending ? loadingSpinnerSvg : this.isPlaying ? pauseSvg : playSvg}
         </button>
         <div id="details">
-          <canvas id="canvas"></canvas>
+          <canvas id="canvas" class=${this.mirroredBars ? 'mirrored' : ''}></canvas>
           <div id="info">
             <span class="current">${this.hasLoaded ? durationToTime(this.currentTime) : '--:--'}</span>
             <span class="total">${this.hasLoaded ? durationToTime(this.totalTime) : '--:--'}</span>
@@ -187,6 +195,10 @@ export class TelegramVoicePlayer extends LitElement {
 
     if (changed.has('bars') || changed.has('mirroredBars')) {
       const normalizeData = this._processAudio(this.audioBuffer as AudioBuffer);
+      if (changed.has('mirroredBars')) {
+        const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
+        setupCanvas(canvas);
+      }
       this._drawAudioBars(normalizeData);
     }
 
