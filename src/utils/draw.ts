@@ -9,6 +9,19 @@ export function setupCanvas(canvas: HTMLCanvasElement) {
   ctx.scale(dpr, dpr);
 }
 
+export function drawCurvedPolygon(ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) {
+  const count = points.length;
+
+  // move to before first point
+  ctx.moveTo((points[count - 1].x + points[0].x) / 2, (points[count - 1].y + points[0].y) / 2);
+
+  for (let i = 0; i < count; i++) {
+    const newX = (points[i].x + points[(i + 1) % count].x) / 2;
+    const newY = (points[i].y + points[(i + 1) % count].y) / 2;
+    ctx.quadraticCurveTo(points[i].x, points[i].y, newX, newY);
+  }
+}
+
 interface DrawBarsOptions {
   async?: boolean;
   mirror?: boolean;
@@ -62,181 +75,75 @@ export async function drawBars(
   ctx.restore();
 }
 
-const randomIndex = Array.from({ length: 32 }, (_, i) => i).sort(() => Math.random() - 0.5);
+let radial = 0;
 
 export async function drawCircularWave(canvas: HTMLCanvasElement, data: number[]) {
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   ctx.save();
 
-  // const newData: number[] = [];
-  // data.forEach((value, i) => {
-  //   newData[randomIndex[i]] = value;
-  // });
-
-  const newData = [...data.reverse(), ...data.reverse()];
-  const count = newData.length;
-
+  const temp = [...data];
+  const filteredData = temp;
+  const count = filteredData.length;
   if (count === 0) return;
 
   const maxHeight = canvas.offsetHeight / 2;
   ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
   ctx.translate(canvas.offsetWidth / 2, canvas.offsetHeight / 2);
-  ctx.fillStyle = '#fff3';
-  ctx.strokeStyle = '#fff4';
-  ctx.lineWidth = 0.5;
 
-  const reserveRadius = 0.5;
-  const power = 1 / (1 - reserveRadius);
+  const gradient = ctx.createConicGradient(0, 0, 0);
 
-  let cords = newData.map((d, i) => {
-    const c = (d / power + reserveRadius) * maxHeight;
-    const r = (2 * Math.PI * i) / count;
-    const x = Math.cos(r) * c;
-    const y = Math.sin(r) * c;
+  // Add five color stops
+  gradient.addColorStop(0, `hsla(${(0 + radial) % 360}, 100%, 50%, 0.5)`);
+  gradient.addColorStop(0.2, `hsla(${(60 + radial) % 360}, 100%, 50%, 0.5)`);
+  gradient.addColorStop(0.4, `hsla(${(120 + radial) % 360}, 100%, 50%, 0.5)`);
+  gradient.addColorStop(0.6, `hsla(${(180 + radial) % 360}, 100%, 50%, 0.5)`);
+  gradient.addColorStop(0.8, `hsla(${(240 + radial) % 360}, 100%, 50%, 0.5)`);
+  gradient.addColorStop(1, `hsla(${(0 + radial) % 360}, 100%, 50%, 0.5)`);
 
-    return { x, y };
-  });
+  radial += 0.25;
+  if (radial > 360) radial = 0;
 
-  ctx.beginPath();
-  ctx.moveTo(cords[0].x, cords[0].y);
-  // console.log(cords[0]);
+  ctx.fillStyle = gradient;
+  ctx.strokeStyle = '#fff8';
+  ctx.lineWidth = 0.25;
 
-  for (let i = 1; i < count - 2; i++) {
-    const xc = (cords[i].x + cords[i + 1].x) / 2;
-    const yc = (cords[i].y + cords[i + 1].y) / 2;
-    ctx.quadraticCurveTo(cords[i].x, cords[i].y, xc, yc);
-  }
-
-  ctx.quadraticCurveTo(cords[count - 1].x, cords[count - 1].y, cords[0].x, cords[0].y);
-  // ctx.fill();
-  // ctx.stroke();
-
-  // cords = newData.map((d, i) => {
-  //   const c = (d / power + reserveRadius) * maxHeight;
-  //   const r = (2 * Math.PI * i) / count + (Math.PI * 2) / 3;
-  //   const x = Math.cos(r) * c;
-  //   const y = Math.sin(r) * c;
-
-  //   return { x, y };
-  // });
-
-  // // ctx.beginPath();
-  // ctx.moveTo(cords[0].x, cords[0].y);
-
-  // for (let i = 1; i < count - 2; i++) {
-  //   const xc = (cords[i].x + cords[i + 1].x) / 2;
-  //   const yc = (cords[i].y + cords[i + 1].y) / 2;
-  //   ctx.quadraticCurveTo(cords[i].x, cords[i].y, xc, yc);
-  // }
-
-  // ctx.quadraticCurveTo(cords[0].x, cords[0].y, cords[1].x, cords[1].y);
-  // ctx.fill();
-  // ctx.stroke();
-
-  cords = newData.map((d, i) => {
-    const c = (d / power + reserveRadius) * maxHeight;
-    const r = (2 * Math.PI * i) / count + Math.PI;
-    const x = Math.cos(r) * c;
-    const y = Math.sin(r) * c;
-
-    return { x, y };
-  });
-
-  // ctx.beginPath();
-  ctx.moveTo(cords[0].x, cords[0].y);
-
-  for (let i = 1; i < count - 2; i++) {
-    const xc = (cords[i].x + cords[i + 1].x) / 2;
-    const yc = (cords[i].y + cords[i + 1].y) / 2;
-    ctx.quadraticCurveTo(cords[i].x, cords[i].y, xc, yc);
-  }
-
-  ctx.quadraticCurveTo(cords[0].x, cords[0].y, cords[1].x, cords[1].y);
-
-  ctx.fill();
-  // ctx.globalCompositeOperation = 'destination-atop';
-  // ctx.stroke();
-
-  // ctx.fillStyle = '#fff5';
-  // ctx.strokeStyle = '#fff9';
-  // ctx.globalCompositeOperation = 'source-in';
-  // ctx.fillRect(canvas.offsetWidth / -2, canvas.offsetHeight / -2, canvas.offsetWidth, canvas.offsetHeight);
-  // ctx.globalCompositeOperation = 'source-in';
-  // ctx.strokeRect(canvas.offsetWidth / -2, canvas.offsetHeight / -2, canvas.offsetWidth, canvas.offsetHeight);
-  // ctx.globalCompositeOperation = 'destination-atop';
-  // ctx.stroke();
-
-  const reserveRadius2 = 0.5;
-  const power2 = 0.9 / (0.9 - reserveRadius);
-
-  cords = newData.map((d, i) => {
-    const c = (d / power2 + reserveRadius2) * maxHeight;
-    const r = (2 * Math.PI * i) / count - Math.PI / 2;
-    const x = Math.cos(r) * c;
-    const y = Math.sin(r) * c;
-
-    return { x, y };
-  });
+  const centerHoleRadius = 0.55;
+  let maxRadius = 0.75;
+  let rangeScale = maxRadius / (maxRadius - centerHoleRadius);
 
   ctx.beginPath();
-  ctx.moveTo(cords[0].x, cords[0].y);
-  // console.log(cords[0]);
+  drawCurvedPolygon(ctx, getPolygonPoints(filteredData, maxHeight, rangeScale, centerHoleRadius, 0));
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
 
-  for (let i = 1; i < count - 2; i++) {
-    const xc = (cords[i].x + cords[i + 1].x) / 2;
-    const yc = (cords[i].y + cords[i + 1].y) / 2;
-    ctx.quadraticCurveTo(cords[i].x, cords[i].y, xc, yc);
-  }
+  maxRadius = 1;
+  rangeScale = maxRadius / (maxRadius - centerHoleRadius);
 
-  ctx.quadraticCurveTo(cords[count - 1].x, cords[count - 1].y, cords[0].x, cords[0].y);
-  // ctx.fill();
-  // ctx.stroke();
-
-  // cords = newData.map((d, i) => {
-  //   const c = (d / power + reserveRadius) * maxHeight;
-  //   const r = (2 * Math.PI * i) / count + (Math.PI * 2) / 3;
-  //   const x = Math.cos(r) * c;
-  //   const y = Math.sin(r) * c;
-
-  //   return { x, y };
-  // });
-
-  // // ctx.beginPath();
-  // ctx.moveTo(cords[0].x, cords[0].y);
-
-  // for (let i = 1; i < count - 2; i++) {
-  //   const xc = (cords[i].x + cords[i + 1].x) / 2;
-  //   const yc = (cords[i].y + cords[i + 1].y) / 2;
-  //   ctx.quadraticCurveTo(cords[i].x, cords[i].y, xc, yc);
-  // }
-
-  // ctx.quadraticCurveTo(cords[0].x, cords[0].y, cords[1].x, cords[1].y);
-  // ctx.fill();
-  // ctx.stroke();
-
-  cords = newData.map((d, i) => {
-    const c = (d / power2 + reserveRadius2) * maxHeight;
-    const r = (2 * Math.PI * i) / count + Math.PI / 2;
-    const x = Math.cos(r) * c;
-    const y = Math.sin(r) * c;
-
-    return { x, y };
+  ctx.globalCompositeOperation = 'destination-over';
+  ctx.lineWidth = 1;
+  ctx.lineCap = 'round';
+  getPolygonPoints(filteredData, maxHeight, rangeScale, centerHoleRadius, Math.PI).forEach((value) => {
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(value.x, value.y);
+    ctx.stroke();
   });
 
-  // ctx.beginPath();
-  ctx.moveTo(cords[0].x, cords[0].y);
-
-  for (let i = 1; i < count - 2; i++) {
-    const xc = (cords[i].x + cords[i + 1].x) / 2;
-    const yc = (cords[i].y + cords[i + 1].y) / 2;
-    ctx.quadraticCurveTo(cords[i].x, cords[i].y, xc, yc);
-  }
-
-  ctx.quadraticCurveTo(cords[0].x, cords[0].y, cords[1].x, cords[1].y);
-
-  ctx.fill();
-  // ctx.stroke();
   ctx.restore();
+}
+
+/* utils */
+function getPolygonPoints(data: number[], radius: number, rangeScale = 1, centerHoleRadius = 0, degreeShift = 0) {
+  const count = data.length;
+  return data.map((d, i) => {
+    const hypotenuse = (d / rangeScale + centerHoleRadius) * radius;
+    const angle = (2 * Math.PI * i) / count + degreeShift;
+    const x = Math.cos(angle) * hypotenuse;
+    const y = Math.sin(angle) * hypotenuse;
+
+    return { x, y };
+  });
 }
 
 function asyncRequestAnimationFrame() {

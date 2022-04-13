@@ -245,20 +245,6 @@ export class PlayWave extends LitElement {
     );
   }
 
-  private _drawAudioProgress(progress: number) {
-    const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    const width = canvas.offsetWidth;
-    const height = canvas.offsetHeight;
-
-    ctx.globalCompositeOperation = 'source-atop';
-    ctx.fillStyle = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
-    ctx.fillRect(0, 0, width, height);
-
-    ctx.fillStyle = getCssCustomVariable(this.renderRoot, 'sound-progress-color');
-    ctx.fillRect(0, 0, (width * progress) / 100, height);
-  }
-
   private _setupAudio() {
     this.audio = new Audio();
     this.audio.autoplay = false;
@@ -297,12 +283,12 @@ export class PlayWave extends LitElement {
     });
 
     const audioCtx = new AudioContext();
-    const analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256;
+    const analyser = new AnalyserNode(audioCtx, {
+      fftSize: 1024,
+    });
     const source = audioCtx.createMediaElementSource(this.audio);
     source.connect(analyser);
-    //this connects our music back to the default output, such as your //speakers
-    // source.connect(audioCtx.destination);
+    source.connect(audioCtx.destination);
     const data = new Uint8Array(analyser.frequencyBinCount);
     const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
     if (!this.initiated) setupCanvas(canvas);
@@ -314,14 +300,9 @@ export class PlayWave extends LitElement {
 
       analyser.getByteFrequencyData(data);
       const a = normalizeData([...data]);
-      a.splice(0, 32);
-      a.splice(-32, 32);
-      // console.log(a);
+      a.splice(0, (data.length / 8) * 3);
+      a.splice((data.length / -8) * 3, (data.length / 8) * 3);
       drawCircularWave(canvas, a);
-      // drawBars(canvas, a, 2 / 9, getCssCustomVariable(this.renderRoot, 'sound-bar-color'), {
-      //   async: false,
-      //   mirror: this.mirroredBars,
-      // });
     };
 
     requestAnimationFrame(loopingFunction);
