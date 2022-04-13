@@ -298,7 +298,7 @@ export class PlayWave extends LitElement {
 
     const audioCtx = new AudioContext();
     const analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 128;
+    analyser.fftSize = 256;
     const source = audioCtx.createMediaElementSource(this.audio);
     source.connect(analyser);
     //this connects our music back to the default output, such as your //speakers
@@ -314,8 +314,8 @@ export class PlayWave extends LitElement {
 
       analyser.getByteFrequencyData(data);
       const a = normalizeData([...data]);
-      // a.splice(0, 16);
-      // a.splice(-16, 16);
+      a.splice(0, 32);
+      a.splice(-32, 32);
       // console.log(a);
       drawCircularWave(canvas, a);
       // drawBars(canvas, a, 2 / 9, getCssCustomVariable(this.renderRoot, 'sound-bar-color'), {
