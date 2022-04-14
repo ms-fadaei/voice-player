@@ -119,6 +119,12 @@ export class PlayWave extends LitElement {
 
   @property({ type: String }) src = '';
   @property({ type: Number, reflect: true }) bars = 64;
+
+  @property({ type: Number, reflect: true }) barCenterHoleRadiusRatio = 0.6;
+  @property({ type: Number, reflect: true }) barMaxRadiusRatio = 0.9;
+  @property({ type: Number, reflect: true }) barGapRatio = 1 / 5;
+  @property({ type: String, reflect: true }) barMode = 'hole';
+
   @property({ type: Boolean, reflect: true }) mirroredBars = true;
   @property({ type: Boolean, attribute: false }) initiated = false;
   @property({ type: Boolean, attribute: false }) isPlaying = false;
@@ -324,13 +330,13 @@ export class PlayWave extends LitElement {
       });
 
       drawCircularBars(canvas, a, `#fff`, {
-        centerHoleRadiusRatio: 0.6,
-        maxRadiusRatio: 0.9,
+        centerHoleRadiusRatio: this.barCenterHoleRadiusRatio,
+        maxRadiusRatio: this.barMaxRadiusRatio,
         clearCanvas: false,
         lineCap: 'round',
         mode: 'destination-over',
-        gapRatio: 1 / 5,
-        drawMode: 'hole',
+        gapRatio: this.barGapRatio,
+        drawMode: this.barMode as unknown as 'full' | 'hole' | 'dynamic',
       });
     };
 

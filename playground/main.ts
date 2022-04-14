@@ -18,3 +18,27 @@ mirroredBarsCheckbox?.addEventListener('change', (e) => {
     player.removeAttribute('mirroredbars');
   }
 });
+
+const bchrrRange = document.getElementById('bchrr');
+bchrrRange?.addEventListener('change', (e) => {
+  const value = (e.target as HTMLInputElement).valueAsNumber;
+  player.setAttribute('barcenterholeradiusratio', `${value}`);
+});
+
+const bbrrRange = document.getElementById('bbrr');
+bbrrRange?.addEventListener('change', (e) => {
+  const value = (e.target as HTMLInputElement).valueAsNumber;
+  player.setAttribute('barmaxradiusratio', `${value}`);
+});
+
+const bgrRange = document.getElementById('bgr');
+bgrRange?.addEventListener('change', (e) => {
+  const value = (e.target as HTMLInputElement).valueAsNumber;
+  player.setAttribute('bargapratio', `${value}`);
+});
+
+const bmRange = document.getElementById('bm');
+bmRange?.addEventListener('change', (e) => {
+  const value = (e.target as HTMLInputElement).value;
+  player.setAttribute('barmode', `${value}`);
+});
