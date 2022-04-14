@@ -134,7 +134,7 @@ interface DrawCircularBarsOption {
   rotate?: number;
   lineCap?: CanvasLineCap;
   gapRatio?: number;
-  drawInsideCenterHole?: boolean;
+  drawMode?: 'full' | 'hole' | 'dynamic';
 }
 
 export async function drawCircularBars(
@@ -149,7 +149,7 @@ export async function drawCircularBars(
     rotate = 0,
     lineCap = 'round',
     gapRatio = 0,
-    drawInsideCenterHole = true,
+    drawMode = 'full',
   }: DrawCircularBarsOption = {}
 ) {
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -169,11 +169,18 @@ export async function drawCircularBars(
 
   ctx.beginPath();
   const points = getPolygonPoints(data, maxHeight, rangeScale, centerHoleRadiusRatio, rotate);
-  points.forEach((value) => {
-    if (drawInsideCenterHole) {
-      ctx.moveTo(0, 0);
-    } else {
+  const angleTimes = (2 * Math.PI) / data.length;
+  points.forEach((value, i) => {
+    if (drawMode === 'hole') {
+      const hypotenuse = centerHoleRadiusRatio * maxHeight;
+      const angle = i * angleTimes + rotate;
+      const x = Math.cos(angle) * hypotenuse;
+      const y = Math.sin(angle) * hypotenuse;
+      ctx.moveTo(x, y);
+    } else if (drawMode === 'dynamic') {
       ctx.moveTo(value.x * centerHoleRadiusRatio, value.y * centerHoleRadiusRatio);
+    } else {
+      ctx.moveTo(0, 0);
     }
 
     ctx.lineTo(value.x, value.y);

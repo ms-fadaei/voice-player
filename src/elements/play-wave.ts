@@ -317,20 +317,20 @@ export class PlayWave extends LitElement {
 
       drawCircularWave(canvas, a, waveGradient, {
         centerHoleRadiusRatio: 0.5,
-        maxRadiusRatio: 0.75,
+        maxRadiusRatio: 1,
         clearCanvas: true,
         strokeWidth: 0.5,
         strokeColor: '#fff',
       });
 
       drawCircularBars(canvas, a, `#fff`, {
-        centerHoleRadiusRatio: 0.75,
-        maxRadiusRatio: 1,
+        centerHoleRadiusRatio: 0.6,
+        maxRadiusRatio: 0.9,
         clearCanvas: false,
         lineCap: 'round',
         mode: 'destination-over',
         gapRatio: 1 / 5,
-        drawInsideCenterHole: false,
+        drawMode: 'hole',
       });
     };
 
