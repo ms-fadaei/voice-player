@@ -293,31 +293,44 @@ export class PlayWave extends LitElement {
     const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
     if (!this.initiated) setupCanvas(canvas);
 
+    let shiftAngle = 0;
+
     const loopingFunction = () => {
       requestAnimationFrame(loopingFunction);
 
       if (!this.isPlaying) return;
 
+      const waveGradient = (canvas.getContext('2d') as CanvasRenderingContext2D).createConicGradient(0, 0, 0);
+      waveGradient.addColorStop(0, `hsla(${(0 + shiftAngle) % 360}deg, 100%, 50%, 0.5)`);
+      waveGradient.addColorStop(0.25, `hsla(${(90 + shiftAngle) % 360}deg, 100%, 50%, 0.5)`);
+      waveGradient.addColorStop(0.5, `hsla(${(180 + shiftAngle) % 360}deg, 100%, 50%, 0.5)`);
+      waveGradient.addColorStop(0.75, `hsla(${(270 + shiftAngle) % 360}deg, 100%, 50%, 0.5)`);
+      waveGradient.addColorStop(1, `hsla(${(0 + shiftAngle) % 360}deg, 100%, 50%, 0.5)`);
+
+      shiftAngle += 0.5;
+      if (shiftAngle > 360) shiftAngle = 0;
+
       analyser.getByteFrequencyData(data);
       const a = normalizeData([...data]);
       a.splice(0, (data.length / 8) * 3);
       a.splice((data.length / -8) * 3, (data.length / 8) * 3);
-      drawCircularWave(canvas, a, '#fff3', {
+
+      drawCircularWave(canvas, a, waveGradient, {
         centerHoleRadiusRatio: 0.5,
         maxRadiusRatio: 0.75,
         clearCanvas: true,
         strokeWidth: 0.5,
-        strokeColor: '#fff5',
+        strokeColor: '#fff',
       });
 
-      drawCircularBars(canvas, a, '#fff5', {
-        centerHoleRadiusRatio: 0.5,
+      drawCircularBars(canvas, a, `#fff`, {
+        centerHoleRadiusRatio: 0.75,
         maxRadiusRatio: 1,
         clearCanvas: false,
         lineCap: 'round',
         mode: 'destination-over',
-        rotate: Math.PI,
-        gapRatio: 0,
+        gapRatio: 1 / 5,
+        drawInsideCenterHole: false,
       });
     };
 

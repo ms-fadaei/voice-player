@@ -1,3 +1,5 @@
+import { CanvasStyle } from '~/types';
+
 export function setupCanvas(canvas: HTMLCanvasElement) {
   // set dpr
   const dpr = window.devicePixelRatio || 1;
@@ -33,7 +35,7 @@ export async function drawBars(
   canvas: HTMLCanvasElement,
   data: number[],
   gapRatio: number,
-  color: string,
+  color: CanvasStyle,
   { async = true, mirror = false, round = true, minHeight = 0 }: DrawBarsOptions = {}
 ) {
   const count = data.length;
@@ -81,14 +83,14 @@ interface DrawCircularWaveOption {
   mode?: GlobalCompositeOperation;
   clearCanvas?: boolean;
   strokeWidth?: number;
-  strokeColor?: string;
+  strokeColor?: CanvasStyle;
   rotate?: number;
 }
 
 export async function drawCircularWave(
   canvas: HTMLCanvasElement,
   data: number[],
-  color: string | CanvasGradient | CanvasPattern,
+  color: CanvasStyle,
   {
     centerHoleRadiusRatio = 0,
     maxRadiusRatio = 1,
@@ -102,9 +104,7 @@ export async function drawCircularWave(
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   ctx.save();
 
-  const centerHoleRadius = centerHoleRadiusRatio;
-  const maxRadius = maxRadiusRatio;
-  const rangeScale = maxRadius / (maxRadius - centerHoleRadius);
+  const rangeScale = maxRadiusRatio / (maxRadiusRatio - centerHoleRadiusRatio);
 
   const maxHeight = canvas.offsetHeight / 2;
   if (clearCanvas) ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
@@ -118,7 +118,7 @@ export async function drawCircularWave(
 
   ctx.globalCompositeOperation = mode;
   ctx.beginPath();
-  drawCurvedPolygon(ctx, getPolygonPoints(data, maxHeight, rangeScale, centerHoleRadius, rotate));
+  drawCurvedPolygon(ctx, getPolygonPoints(data, maxHeight, rangeScale, centerHoleRadiusRatio, rotate));
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
@@ -134,12 +134,13 @@ interface DrawCircularBarsOption {
   rotate?: number;
   lineCap?: CanvasLineCap;
   gapRatio?: number;
+  drawInsideCenterHole?: boolean;
 }
 
 export async function drawCircularBars(
   canvas: HTMLCanvasElement,
   data: number[],
-  color: string | CanvasGradient | CanvasPattern,
+  color: CanvasStyle,
   {
     centerHoleRadiusRatio = 0,
     maxRadiusRatio = 1,
@@ -148,6 +149,7 @@ export async function drawCircularBars(
     rotate = 0,
     lineCap = 'round',
     gapRatio = 0,
+    drawInsideCenterHole = true,
   }: DrawCircularBarsOption = {}
 ) {
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -157,21 +159,23 @@ export async function drawCircularBars(
   if (clearCanvas) ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
   ctx.translate(canvas.offsetWidth / 2, canvas.offsetHeight / 2);
 
-  const centerHoleRadius = centerHoleRadiusRatio;
-  const maxRadius = maxRadiusRatio;
-  const rangeScale = maxRadius / (maxRadius - centerHoleRadius);
-  const holeCirclePerimeter = (centerHoleRadiusRatio * canvas.height * Math.PI) / 2;
-  console.log(centerHoleRadiusRatio, maxHeight);
+  const rangeScale = maxRadiusRatio / (maxRadiusRatio - centerHoleRadiusRatio);
+  const holeCirclePerimeter = centerHoleRadiusRatio * maxHeight * Math.PI * 2;
 
   ctx.globalCompositeOperation = mode;
   ctx.strokeStyle = color;
-  ctx.lineWidth = (holeCirclePerimeter / 360) * (1 - gapRatio);
+  ctx.lineWidth = (holeCirclePerimeter / data.length) * (1 - gapRatio);
   ctx.lineCap = lineCap;
 
   ctx.beginPath();
-  const points = getPolygonPoints(data, maxHeight, rangeScale, centerHoleRadius, rotate);
+  const points = getPolygonPoints(data, maxHeight, rangeScale, centerHoleRadiusRatio, rotate);
   points.forEach((value) => {
-    ctx.moveTo(0, 0);
+    if (drawInsideCenterHole) {
+      ctx.moveTo(0, 0);
+    } else {
+      ctx.moveTo(value.x * centerHoleRadiusRatio, value.y * centerHoleRadiusRatio);
+    }
+
     ctx.lineTo(value.x, value.y);
   });
   ctx.stroke();
@@ -180,11 +184,11 @@ export async function drawCircularBars(
 }
 
 /* utils */
-function getPolygonPoints(data: number[], radius: number, rangeScale = 1, centerHoleRadius = 0, degreeShift = 0) {
-  const count = data.length;
+function getPolygonPoints(data: number[], radius: number, rangeScale = 1, centerHoleRadiusRatio = 0, degreeShift = 0) {
+  const angleTimes = (2 * Math.PI) / data.length;
   return data.map((d, i) => {
-    const hypotenuse = (d / rangeScale + centerHoleRadius) * radius;
-    const angle = (2 * Math.PI * i) / count + degreeShift;
+    const hypotenuse = (d / rangeScale + centerHoleRadiusRatio) * radius;
+    const angle = i * angleTimes + degreeShift;
     const x = Math.cos(angle) * hypotenuse;
     const y = Math.sin(angle) * hypotenuse;
 
