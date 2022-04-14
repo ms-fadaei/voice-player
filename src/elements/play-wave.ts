@@ -3,7 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 // import { durationToTime } from '~/utils/time';
 import { filterData, normalizeData } from '~/utils/audio';
 import { getCssCustomVariable } from '~/utils/style';
-import { setupCanvas, drawBars, drawCircularWave } from '~/utils/draw';
+import { setupCanvas, drawBars, drawCircularWave, drawCircularBars } from '~/utils/draw';
 import playSvg from '~/assets/svg/play';
 import pauseSvg from '~/assets/svg/pause';
 import loadingSpinnerSvg from '~/assets/svg/loading-spinner';
@@ -284,7 +284,7 @@ export class PlayWave extends LitElement {
 
     const audioCtx = new AudioContext();
     const analyser = new AnalyserNode(audioCtx, {
-      fftSize: 1024,
+      fftSize: 512,
     });
     const source = audioCtx.createMediaElementSource(this.audio);
     source.connect(analyser);
@@ -302,7 +302,23 @@ export class PlayWave extends LitElement {
       const a = normalizeData([...data]);
       a.splice(0, (data.length / 8) * 3);
       a.splice((data.length / -8) * 3, (data.length / 8) * 3);
-      drawCircularWave(canvas, a);
+      drawCircularWave(canvas, a, '#fff3', {
+        centerHoleRadiusRatio: 0.5,
+        maxRadiusRatio: 0.75,
+        clearCanvas: true,
+        strokeWidth: 0.5,
+        strokeColor: '#fff5',
+      });
+
+      drawCircularBars(canvas, a, '#fff5', {
+        centerHoleRadiusRatio: 0.5,
+        maxRadiusRatio: 1,
+        clearCanvas: false,
+        lineCap: 'round',
+        mode: 'destination-over',
+        rotate: Math.PI,
+        gapRatio: 0,
+      });
     };
 
     requestAnimationFrame(loopingFunction);

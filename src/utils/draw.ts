@@ -75,60 +75,106 @@ export async function drawBars(
   ctx.restore();
 }
 
-let radial = 0;
+interface DrawCircularWaveOption {
+  centerHoleRadiusRatio?: number;
+  maxRadiusRatio?: number;
+  mode?: GlobalCompositeOperation;
+  clearCanvas?: boolean;
+  strokeWidth?: number;
+  strokeColor?: string;
+  rotate?: number;
+}
 
-export async function drawCircularWave(canvas: HTMLCanvasElement, data: number[]) {
+export async function drawCircularWave(
+  canvas: HTMLCanvasElement,
+  data: number[],
+  color: string | CanvasGradient | CanvasPattern,
+  {
+    centerHoleRadiusRatio = 0,
+    maxRadiusRatio = 1,
+    mode = 'source-over',
+    clearCanvas = true,
+    strokeWidth = 0,
+    strokeColor = '',
+    rotate = 0,
+  }: DrawCircularWaveOption = {}
+) {
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   ctx.save();
 
-  const temp = [...data];
-  const filteredData = temp;
-  const count = filteredData.length;
-  if (count === 0) return;
+  const centerHoleRadius = centerHoleRadiusRatio;
+  const maxRadius = maxRadiusRatio;
+  const rangeScale = maxRadius / (maxRadius - centerHoleRadius);
 
   const maxHeight = canvas.offsetHeight / 2;
-  ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+  if (clearCanvas) ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
   ctx.translate(canvas.offsetWidth / 2, canvas.offsetHeight / 2);
 
-  const gradient = ctx.createConicGradient(0, 0, 0);
+  ctx.fillStyle = color;
+  if (strokeWidth !== 0) {
+    ctx.lineWidth = strokeWidth;
+    ctx.strokeStyle = strokeColor;
+  }
 
-  // Add five color stops
-  gradient.addColorStop(0, `hsla(${(0 + radial) % 360}, 100%, 50%, 0.5)`);
-  gradient.addColorStop(0.2, `hsla(${(60 + radial) % 360}, 100%, 50%, 0.5)`);
-  gradient.addColorStop(0.4, `hsla(${(120 + radial) % 360}, 100%, 50%, 0.5)`);
-  gradient.addColorStop(0.6, `hsla(${(180 + radial) % 360}, 100%, 50%, 0.5)`);
-  gradient.addColorStop(0.8, `hsla(${(240 + radial) % 360}, 100%, 50%, 0.5)`);
-  gradient.addColorStop(1, `hsla(${(0 + radial) % 360}, 100%, 50%, 0.5)`);
-
-  radial += 0.25;
-  if (radial > 360) radial = 0;
-
-  ctx.fillStyle = gradient;
-  ctx.strokeStyle = '#fff8';
-  ctx.lineWidth = 0.25;
-
-  const centerHoleRadius = 0.55;
-  let maxRadius = 0.75;
-  let rangeScale = maxRadius / (maxRadius - centerHoleRadius);
-
+  ctx.globalCompositeOperation = mode;
   ctx.beginPath();
-  drawCurvedPolygon(ctx, getPolygonPoints(filteredData, maxHeight, rangeScale, centerHoleRadius, 0));
+  drawCurvedPolygon(ctx, getPolygonPoints(data, maxHeight, rangeScale, centerHoleRadius, rotate));
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  maxRadius = 1;
-  rangeScale = maxRadius / (maxRadius - centerHoleRadius);
+  ctx.restore();
+}
 
-  ctx.globalCompositeOperation = 'destination-over';
-  ctx.lineWidth = 1;
-  ctx.lineCap = 'round';
-  getPolygonPoints(filteredData, maxHeight, rangeScale, centerHoleRadius, Math.PI).forEach((value) => {
-    ctx.beginPath();
+interface DrawCircularBarsOption {
+  centerHoleRadiusRatio?: number;
+  maxRadiusRatio?: number;
+  mode?: GlobalCompositeOperation;
+  clearCanvas?: boolean;
+  rotate?: number;
+  lineCap?: CanvasLineCap;
+  gapRatio?: number;
+}
+
+export async function drawCircularBars(
+  canvas: HTMLCanvasElement,
+  data: number[],
+  color: string | CanvasGradient | CanvasPattern,
+  {
+    centerHoleRadiusRatio = 0,
+    maxRadiusRatio = 1,
+    mode = 'source-over',
+    clearCanvas = true,
+    rotate = 0,
+    lineCap = 'round',
+    gapRatio = 0,
+  }: DrawCircularBarsOption = {}
+) {
+  const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+  ctx.save();
+
+  const maxHeight = canvas.offsetHeight / 2;
+  if (clearCanvas) ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+  ctx.translate(canvas.offsetWidth / 2, canvas.offsetHeight / 2);
+
+  const centerHoleRadius = centerHoleRadiusRatio;
+  const maxRadius = maxRadiusRatio;
+  const rangeScale = maxRadius / (maxRadius - centerHoleRadius);
+  const holeCirclePerimeter = (centerHoleRadiusRatio * canvas.height * Math.PI) / 2;
+  console.log(centerHoleRadiusRatio, maxHeight);
+
+  ctx.globalCompositeOperation = mode;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = (holeCirclePerimeter / 360) * (1 - gapRatio);
+  ctx.lineCap = lineCap;
+
+  ctx.beginPath();
+  const points = getPolygonPoints(data, maxHeight, rangeScale, centerHoleRadius, rotate);
+  points.forEach((value) => {
     ctx.moveTo(0, 0);
     ctx.lineTo(value.x, value.y);
-    ctx.stroke();
   });
+  ctx.stroke();
 
   ctx.restore();
 }
