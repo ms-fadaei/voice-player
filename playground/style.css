@@ -21,6 +21,12 @@ body {
 
 .wave-player {
   font-size: 4rem;
+
+  --play-btn-background: #302b63;
+  --play-btn-color: #fff;
+  --wave-bg-color: #fff2;
+  --wave-border-color: #fff5;
+  --wave-bar-color: #fff8;
 }
 
 .control-pannel {

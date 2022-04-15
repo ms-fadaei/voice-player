@@ -1,4 +1,4 @@
-import { CanvasStyle } from '~/types';
+import { CanvasStyle, DrawCircularBarsMode } from '~/types';
 
 export function setupCanvas(canvas: HTMLCanvasElement) {
   // set dpr
@@ -134,7 +134,7 @@ interface DrawCircularBarsOption {
   rotate?: number;
   lineCap?: CanvasLineCap;
   gapRatio?: number;
-  drawMode?: 'full' | 'hole' | 'dynamic';
+  drawMode?: DrawCircularBarsMode;
 }
 
 export async function drawCircularBars(

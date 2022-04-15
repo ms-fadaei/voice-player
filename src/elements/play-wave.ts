@@ -1,9 +1,9 @@
 import { LitElement, html, css } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
-// import { durationToTime } from '~/utils/time';
-import { filterData, normalizeData } from '~/utils/audio';
+import { normalizeData } from '~/utils/audio';
 import { getCssCustomVariable } from '~/utils/style';
-import { setupCanvas, drawBars, drawCircularWave, drawCircularBars } from '~/utils/draw';
+import { setupCanvas, drawCircularWave, drawCircularBars } from '~/utils/draw';
+import { DrawCircularBarsMode } from '~/types';
 import playSvg from '~/assets/svg/play';
 import pauseSvg from '~/assets/svg/pause';
 import loadingSpinnerSvg from '~/assets/svg/loading-spinner';
@@ -18,13 +18,11 @@ export class PlayWave extends LitElement {
       font-size: 16px;
       /* width: 300px; */
 
-      --container-border-radius: 0.875em;
-      --container-background: #1566a3;
       --play-btn-background: #fff;
       --play-btn-color: #1566a3;
-      --text-color: #b7d9f3;
-      --sound-bar-color: #b7d9f3;
-      --sound-progress-color: #fff;
+      --wave-bg-color: #b7d9f3;
+      --wave-border-color: #fff;
+      --wave-bar-color: #fff;
     }
 
     * {
@@ -118,23 +116,16 @@ export class PlayWave extends LitElement {
   `;
 
   @property({ type: String }) src = '';
-  @property({ type: Number, reflect: true }) bars = 64;
-
   @property({ type: Number, reflect: true }) barCenterHoleRadiusRatio = 0.6;
   @property({ type: Number, reflect: true }) barMaxRadiusRatio = 0.9;
   @property({ type: Number, reflect: true }) barGapRatio = 1 / 5;
   @property({ type: String, reflect: true }) barMode = 'hole';
-
-  @property({ type: Boolean, reflect: true }) mirroredBars = true;
   @property({ type: Boolean, attribute: false }) initiated = false;
   @property({ type: Boolean, attribute: false }) isPlaying = false;
-  @property({ type: Number, attribute: false }) totalTime = 234;
-  @property({ type: Number, attribute: false }) currentTime = 0;
   @property({ type: Boolean, attribute: false }) isPending = true;
   @property({ type: Boolean, attribute: false }) hasLoaded = false;
   @property({ type: Boolean, attribute: false }) hasError = false;
   @property({ attribute: false }) audio = new Audio();
-  @property({ attribute: false }) audioBuffer?: AudioBuffer;
 
   override render() {
     return html`
@@ -147,31 +138,12 @@ export class PlayWave extends LitElement {
     `;
   }
 
-  override connectedCallback() {
-    super.connectedCallback();
-  }
-
   override firstUpdated() {
-    // const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
-    // const data = new Array(this.bars).fill(0);
-    // const color = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
-    // if (!this.initiated) setupCanvas(canvas);
-    // drawBars(canvas, data, 2 / 9, color, { async: false, mirror: this.mirroredBars });
-
     this._loadAudio();
   }
 
   override updated(changed: Map<string, unknown>) {
     if (!this.initiated) return;
-
-    if (changed.has('bars') || changed.has('mirroredBars')) {
-      const normalizeData = this._processAudio(this.audioBuffer as AudioBuffer);
-      if (changed.has('mirroredBars')) {
-        const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
-        setupCanvas(canvas);
-      }
-      this._drawAudioBars(normalizeData);
-    }
 
     if (changed.has('src')) {
       this._loadAudio();
@@ -179,76 +151,9 @@ export class PlayWave extends LitElement {
   }
 
   private _loadAudio() {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    window.AudioContext = window.AudioContext || window.webkitAudioContext;
-    const audioContext = new AudioContext();
     fetch(this.src)
-      .then((response) => response.arrayBuffer())
-      .then((arrayBuffer) => audioContext.decodeAudioData(arrayBuffer))
-      .then((arrayBuffer) => this._processAudio(arrayBuffer))
-      .then(() => {
-        this._setupAudio();
-        // return this._drawAudioBars(normalizeData);
-      })
-      .then(() => this._setupProgressEvents())
+      .then(() => this._setupAudio())
       .then(() => (this.initiated = true));
-  }
-
-  private _processAudio(audioBuffer: AudioBuffer) {
-    this.audioBuffer = audioBuffer;
-    const filteredData = filterData(audioBuffer, this.bars);
-    const normalizedData = normalizeData(filteredData);
-    return normalizedData;
-  }
-
-  private async _drawAudioBars(normalizedData: number[]) {
-    const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
-    const color = getCssCustomVariable(this.renderRoot, 'sound-bar-color');
-    await drawBars(canvas, normalizedData, 2 / 9, color, { async: false, mirror: this.mirroredBars });
-  }
-
-  private _setupProgressEvents() {
-    if (this.initiated) return;
-
-    const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
-    let lmbActive = false;
-    const onProgressChange = (progress: number) => {
-      this.audio.currentTime = progress * this.totalTime * 0.01;
-    };
-
-    window.addEventListener('mouseup', () => {
-      lmbActive = false;
-    });
-
-    canvas.addEventListener('mousedown', (e) => {
-      lmbActive = true;
-      onProgressChange((e.offsetX / canvas.offsetWidth) * 100);
-    });
-
-    window.addEventListener(
-      'mousemove',
-      (e) => {
-        if (!lmbActive) return;
-
-        const boundingRect = canvas.getBoundingClientRect();
-        const leftSide = boundingRect.left;
-        const rightSide = boundingRect.left + boundingRect.width;
-
-        const progress = e.clientX;
-        let progressPercentage = 0;
-        if (progress < leftSide) {
-          progressPercentage = 0;
-        } else if (progress > rightSide) {
-          progressPercentage = 100;
-        } else {
-          progressPercentage = ((progress - leftSide) / (rightSide - leftSide)) * 100;
-        }
-
-        onProgressChange(progressPercentage);
-      },
-      { passive: true }
-    );
   }
 
   private _setupAudio() {
@@ -256,16 +161,6 @@ export class PlayWave extends LitElement {
     this.audio.autoplay = false;
     this.audio.src = this.src;
     this.audio.loop = false;
-
-    this.audio.addEventListener('timeupdate', () => {
-      this.currentTime = this.audio.currentTime;
-      // this._drawAudioProgress((this.audio.currentTime / this.audio.duration) * 100);
-    });
-
-    this.audio.addEventListener('loadedmetadata', () => {
-      this.totalTime = this.audio.duration;
-      this.currentTime = 0;
-    });
 
     this.audio.addEventListener('loadeddata', () => {
       if (this.audio.readyState >= 2) {
@@ -277,7 +172,6 @@ export class PlayWave extends LitElement {
 
     this.audio.addEventListener('ended', () => {
       if (this.isPlaying) {
-        this.audio.currentTime = 0;
         this.isPlaying = false;
       }
     });
@@ -288,6 +182,10 @@ export class PlayWave extends LitElement {
       this.hasError = true;
     });
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
     const audioCtx = new AudioContext();
     const analyser = new AnalyserNode(audioCtx, {
       fftSize: 512,
@@ -296,47 +194,40 @@ export class PlayWave extends LitElement {
     source.connect(analyser);
     source.connect(audioCtx.destination);
     const data = new Uint8Array(analyser.frequencyBinCount);
+
     const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
     if (!this.initiated) setupCanvas(canvas);
 
-    let shiftAngle = 0;
+    const waveBgColor = getCssCustomVariable(this.renderRoot, 'wave-bg-color');
+    const waveBorderColor = getCssCustomVariable(this.renderRoot, 'wave-border-color');
+    const waveBarColor = getCssCustomVariable(this.renderRoot, 'wave-bar-color');
 
     const loopingFunction = () => {
       requestAnimationFrame(loopingFunction);
 
       if (!this.isPlaying) return;
 
-      const waveGradient = (canvas.getContext('2d') as CanvasRenderingContext2D).createConicGradient(0, 0, 0);
-      waveGradient.addColorStop(0, `hsla(${(0 + shiftAngle) % 360}deg, 100%, 50%, 0.5)`);
-      waveGradient.addColorStop(0.25, `hsla(${(90 + shiftAngle) % 360}deg, 100%, 50%, 0.5)`);
-      waveGradient.addColorStop(0.5, `hsla(${(180 + shiftAngle) % 360}deg, 100%, 50%, 0.5)`);
-      waveGradient.addColorStop(0.75, `hsla(${(270 + shiftAngle) % 360}deg, 100%, 50%, 0.5)`);
-      waveGradient.addColorStop(1, `hsla(${(0 + shiftAngle) % 360}deg, 100%, 50%, 0.5)`);
-
-      shiftAngle += 0.5;
-      if (shiftAngle > 360) shiftAngle = 0;
-
       analyser.getByteFrequencyData(data);
-      const a = normalizeData([...data]);
-      a.splice(0, (data.length / 8) * 3);
-      a.splice((data.length / -8) * 3, (data.length / 8) * 3);
+      const normalizedData = normalizeData([...data]);
+      normalizedData.splice(0, (data.length / 8) * 3);
+      normalizedData.splice((data.length / -8) * 3, (data.length / 8) * 3);
 
-      drawCircularWave(canvas, a, waveGradient, {
+      drawCircularWave(canvas, normalizedData, waveBgColor, {
         centerHoleRadiusRatio: 0.5,
         maxRadiusRatio: 1,
         clearCanvas: true,
         strokeWidth: 0.5,
-        strokeColor: '#fff',
+        strokeColor: waveBorderColor,
       });
 
-      drawCircularBars(canvas, a, `#fff`, {
+      drawCircularBars(canvas, normalizedData, waveBarColor, {
         centerHoleRadiusRatio: this.barCenterHoleRadiusRatio,
         maxRadiusRatio: this.barMaxRadiusRatio,
         clearCanvas: false,
         lineCap: 'round',
         mode: 'destination-over',
         gapRatio: this.barGapRatio,
-        drawMode: this.barMode as unknown as 'full' | 'hole' | 'dynamic',
+        drawMode: this.barMode as DrawCircularBarsMode,
       });
     };
 
