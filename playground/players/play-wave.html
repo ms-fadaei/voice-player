@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Play Wave</title>
+  </head>
+  <body>
+    <play-wave src="/audio.mp3" class="wave-player"></play-wave>
+    <div class="control-pannel">
+      <div class="row">
+        <label for="bchrr">Bar Center Hole Radius Ratio</label>
+        <input type="range" id="bchrr" min="0" max="1" value="0.6" step="0.05" />
+      </div>
+      <div class="row">
+        <label for="bbrr">Bar Bax Radius Ratio</label>
+        <input type="range" id="bbrr" min="0" max="1" value="0.9" step="0.05" />
+      </div>
+      <div class="row">
+        <label for="bgr">Bar Gap Ratio</label>
+        <input type="range" id="bgr" min="-1" max="1" value="0.2" step="0.05" />
+      </div>
+      <div class="row">
+        <label for="bm">Bar Mode</label>
+        <select name="" id="bm">
+          <option value="full">Full</option>
+          <option value="hole" selected>Hole</option>
+          <option value="dynamic">Dynamic</option>
+        </select>
+      </div>
+    </div>
+    <script type="module">
+      import { initPlayWave } from '~/index';
+      import '@/style.css';
+
+      initPlayWave();
+
+      const wavePlayer = document.getElementsByClassName('wave-player')[0];
+
+      const bchrrRange = document.getElementById('bchrr');
+      bchrrRange?.addEventListener('change', (e) => {
+        const value = e.target.valueAsNumber;
+        wavePlayer.setAttribute('barcenterholeradiusratio', `${value}`);
+      });
+
+      const bbrrRange = document.getElementById('bbrr');
+      bbrrRange?.addEventListener('change', (e) => {
+        const value = e.target.valueAsNumber;
+        wavePlayer.setAttribute('barmaxradiusratio', `${value}`);
+      });
+
+      const bgrRange = document.getElementById('bgr');
+      bgrRange?.addEventListener('change', (e) => {
+        const value = e.target.valueAsNumber;
+        wavePlayer.setAttribute('bargapratio', `${value}`);
+      });
+
+      const bmRange = document.getElementById('bm');
+      bmRange?.addEventListener('change', (e) => {
+        const value = e.target.value;
+        wavePlayer.setAttribute('barmode', `${value}`);
+      });
+    </script>
+  </body>
+</html>

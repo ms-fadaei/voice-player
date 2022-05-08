@@ -24,9 +24,9 @@ body {
 
   --play-btn-background: #302b63;
   --play-btn-color: #fff;
-  --wave-bg-color: #fff2;
-  --wave-border-color: #fff5;
-  --wave-bar-color: #fff8;
+  --wave-bg-color: hsl(346, 84%, 61%, 50%);
+  --wave-border-color: hsl(346, 84%, 61%);
+  --wave-bar-color: hsl(42, 100%, 70%);
 }
 
 .control-pannel {

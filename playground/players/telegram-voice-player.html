@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Telegram Voice Player</title>
+  </head>
+  <body>
+    <telegram-voice-player src="/audio.mp3" class="player"></telegram-voice-player>
+    <div class="control-pannel">
+      <div class="row">
+        <label for="bars">Bar Count</label>
+        <input type="range" id="bars" min="32" max="256" value="50" step="2" />
+      </div>
+      <div class="row">
+        <label for="mirrored-bars">Mirrored Bars</label>
+        <input type="checkbox" id="mirrored-bars" checked />
+      </div>
+    </div>
+    <script type="module">
+      import { initTelegramVoicePlayer } from '~/index';
+      import '@/style.css';
+
+      initTelegramVoicePlayer();
+
+      const player = document.getElementsByClassName('player')[0];
+
+      const barsRange = document.getElementById('bars');
+      barsRange?.addEventListener('change', (e) => {
+        const bars = e.target.valueAsNumber;
+        player.setAttribute('bars', `${bars}`);
+      });
+
+      const mirroredBarsCheckbox = document.getElementById('mirrored-bars');
+      mirroredBarsCheckbox?.addEventListener('change', (e) => {
+        const checked = e.target.checked;
+        if (checked) {
+          player.setAttribute('mirroredbars', '');
+        } else {
+          player.removeAttribute('mirroredbars');
+        }
+      });
+    </script>
+  </body>
+</html>
