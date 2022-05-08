@@ -6,4 +6,5 @@ export default defineConfig({
   ...viteConfig,
   root: resolve(__dirname, './'),
   publicDir: resolve(__dirname, './public'),
+  base: 'https://ms-fadaei.github.io/voice-player/',
 });
