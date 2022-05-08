@@ -7,13 +7,17 @@
     <title>Document</title>
   </head>
   <body>
-    <ul>
-      <li>
-        <a href="./players/telegram-voice-player.html">Telegram Voice Player</a>
-      </li>
-      <li>
-        <a href="./players/play-wave.html">Play Wave</a>
-      </li>
-    </ul>
+    <telegram-voice-player src="/audio.mp3" class="player"></telegram-voice-player>
+    <div class="control-pannel">
+      <div class="row">
+        <label for="bars">Bar Count</label>
+        <input type="range" id="bars" min="32" max="256" value="50" step="2" />
+      </div>
+      <div class="row">
+        <label for="mirrored-bars">Mirrored Bars</label>
+        <input type="checkbox" id="mirrored-bars" checked />
+      </div>
+    </div>
+    <script type="module" src="./main.ts"></script>
   </body>
 </html>

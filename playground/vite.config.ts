@@ -6,8 +6,8 @@ export default defineConfig({
   publicDir: resolve(__dirname, './public'),
   resolve: {
     alias: {
-      '~': resolve(__dirname, './src'),
-      '@': resolve(__dirname, './playground'),
+      '~': resolve(__dirname, '../src'),
+      '@': resolve(__dirname, './'),
     },
   },
   base: 'https://ms-fadaei.github.io/voice-player/',
