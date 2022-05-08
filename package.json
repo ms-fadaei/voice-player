@@ -1,17 +1,16 @@
 {
-  "name": "vite-lit-library-starter",
+  "name": "voice-player",
   "version": "0.0.0",
   "description": "WIP",
-  "repository": "ms-fadaei/vite-lit-library-starter",
-  "homepage": "https://github.com/ms-fadaei/vite-lit-library-starter",
+  "repository": "ms-fadaei/voice-player",
+  "homepage": "https://github.com/ms-fadaei/voice-player",
   "license": "MIT",
   "keywords": [
     "vite",
     "lit",
-    "library",
-    "starter-template",
-    "boilerplate",
-    "typescript"
+    "voice-player",
+    "custom-element",
+    "audio"
   ],
   "main": "./dist/elements.cjs",
   "module": "./dist/elements.mjs",
