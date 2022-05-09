@@ -29,6 +29,7 @@ interface DrawBarsOptions {
   mirror?: boolean;
   round?: boolean;
   minHeight?: number;
+  lineCap?: CanvasLineCap;
 }
 
 export async function drawBars(
@@ -36,7 +37,7 @@ export async function drawBars(
   data: number[],
   gapRatio: number,
   color: CanvasStyle,
-  { async = true, mirror = false, round = true, minHeight = 0 }: DrawBarsOptions = {}
+  { async = true, mirror = false, lineCap = 'round', minHeight = 0 }: DrawBarsOptions = {}
 ) {
   const count = data.length;
   // calculate bars width
@@ -47,31 +48,33 @@ export async function drawBars(
 
   const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
   ctx.save();
-  ctx.translate(0, mirror ? canvas.offsetHeight / 2 : canvas.offsetHeight);
+  ctx.translate(0, mirror ? canvas.offsetHeight / 2 : canvas.offsetHeight - bodyWidth);
 
   for (let i = 0; i < count; i++) {
     const x = totalWidth * i;
-    const maxHeight = mirror ? canvas.offsetHeight / 2 : canvas.offsetHeight;
+    const maxHeight = mirror ? canvas.offsetHeight / 2 : canvas.offsetHeight - bodyWidth;
     let height = data[i] * canvas.offsetHeight;
     if (mirror) height /= 2;
 
     if (height < minHeight * maxHeight) height = minHeight * maxHeight;
-    else if (round && height + bodyWidth / 2 > maxHeight) height = maxHeight - bodyWidth / 2;
+    else if (height + bodyWidth > maxHeight) height = maxHeight - bodyWidth;
     else if (height > maxHeight) height = maxHeight;
 
     if (async) await asyncRequestAnimationFrame();
 
     // draw
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = color;
-    ctx.clearRect(x, maxHeight * -1, totalWidth, mirror ? maxHeight * 2 : maxHeight);
-    ctx.fillRect(x, height * -1, bodyWidth, mirror ? height * 2 : height);
-    if (round) {
-      ctx.beginPath();
-      ctx.arc(x + bodyWidth / 2, height * -1, bodyWidth / 2, 0, Math.PI * 2);
-      if (mirror) ctx.arc(x + bodyWidth / 2, height, bodyWidth / 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    ctx.clearRect(x, maxHeight * -1, totalWidth, mirror ? maxHeight * 2 : maxHeight + bodyWidth);
+
+    ctx.strokeStyle = color;
+    ctx.lineWidth = bodyWidth;
+    ctx.lineCap = lineCap;
+
+    ctx.beginPath();
+    ctx.moveTo(x + bodyWidth / 2, height * -1);
+    ctx.lineTo(x + bodyWidth / 2, mirror ? height : 0);
+    ctx.stroke();
+    ctx.closePath();
   }
 
   ctx.restore();
