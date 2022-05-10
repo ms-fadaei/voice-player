@@ -48,7 +48,7 @@
     "eslint": "8.15.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-prettier": "4.0.0",
-    "happy-dom": "3.1.1",
+    "happy-dom": "3.2.0",
     "husky": "8.0.0",
     "jsdom": "19.0.0",
     "lint-staged": "12.4.1",
