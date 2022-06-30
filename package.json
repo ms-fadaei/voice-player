@@ -47,7 +47,7 @@
     "@vitest/ui": "0.15.1",
     "eslint": "8.18.0",
     "eslint-config-prettier": "8.5.0",
-    "eslint-plugin-prettier": "4.0.0",
+    "eslint-plugin-prettier": "4.2.1",
     "happy-dom": "5.3.1",
     "husky": "8.0.1",
     "jsdom": "19.0.0",
