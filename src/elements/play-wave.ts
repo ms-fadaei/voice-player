@@ -151,16 +151,16 @@ export class PlayWave extends LitElement {
   }
 
   private _loadAudio() {
-    fetch(this.src)
-      .then(() => this._setupAudio())
-      .then(() => (this.initiated = true));
+    fetch(this.src).then(() => this._setupAudio());
   }
 
   private _setupAudio() {
     this.audio = new Audio();
-    this.audio.autoplay = false;
+    const drawTheCircularWave = this._setupAudioAnalyser();
     this.audio.src = this.src;
+    this.audio.autoplay = false;
     this.audio.loop = false;
+    let drawTheCircularWaveRunner: null | number = null;
 
     this.audio.addEventListener('loadeddata', () => {
       if (this.audio.readyState >= 2) {
@@ -182,10 +182,28 @@ export class PlayWave extends LitElement {
       this.hasError = true;
     });
 
+    this.audio.addEventListener('play', () => {
+      const drawCycleCb = () => {
+        if (drawTheCircularWaveRunner) {
+          drawTheCircularWave();
+          drawTheCircularWaveRunner = requestAnimationFrame(drawCycleCb);
+        }
+      };
+
+      drawTheCircularWaveRunner = requestAnimationFrame(drawCycleCb);
+    });
+
+    this.audio.addEventListener('pause', () => {
+      if (drawTheCircularWaveRunner) {
+        cancelAnimationFrame(drawTheCircularWaveRunner);
+      }
+    });
+  }
+
+  private _setupAudioAnalyser(): () => void {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
-
     const audioCtx = new AudioContext();
     const analyser = new AnalyserNode(audioCtx, {
       fftSize: 512,
@@ -196,17 +214,16 @@ export class PlayWave extends LitElement {
     const data = new Uint8Array(analyser.frequencyBinCount);
 
     const canvas = this.renderRoot.querySelector('canvas') as HTMLCanvasElement;
-    if (!this.initiated) setupCanvas(canvas);
+    if (!this.initiated) {
+      setupCanvas(canvas);
+      this.initiated = true;
+    }
 
     const waveBgColor = getCssCustomVariable(this.renderRoot, 'wave-bg-color');
     const waveBorderColor = getCssCustomVariable(this.renderRoot, 'wave-border-color');
     const waveBarColor = getCssCustomVariable(this.renderRoot, 'wave-bar-color');
 
-    const loopingFunction = () => {
-      requestAnimationFrame(loopingFunction);
-
-      if (!this.isPlaying) return;
-
+    const drawTheCircularWave = () => {
       analyser.getByteFrequencyData(data);
       const normalizedData = normalizeData([...data]);
       normalizedData.splice(0, (data.length / 8) * 3);
@@ -231,7 +248,7 @@ export class PlayWave extends LitElement {
       });
     };
 
-    requestAnimationFrame(loopingFunction);
+    return drawTheCircularWave;
   }
 
   private _playOrPause() {
