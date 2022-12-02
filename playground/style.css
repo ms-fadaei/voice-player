@@ -46,7 +46,7 @@ body {
 
   --play-btn-background: #302b63;
   --play-btn-color: #fff;
-  --wave-bg-color: hsl(346, 84%, 61%, 50%);
+  --wave-bg-color: hsla(120, 84%, 61%, 50%);
   --wave-border-color: hsl(346, 84%, 61%);
   --wave-bar-color: hsl(42, 100%, 70%);
 }
