@@ -126,6 +126,7 @@ export class PlayWave extends LitElement {
   @property({ type: Boolean, attribute: false }) hasLoaded = false;
   @property({ type: Boolean, attribute: false }) hasError = false;
   @property({ attribute: false }) audio = new Audio();
+  @property({ attribute: false }) context: AudioContext | null = null;
 
   override render() {
     return html`
@@ -205,6 +206,7 @@ export class PlayWave extends LitElement {
     // @ts-ignore
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
     const audioCtx = new AudioContext();
+    this.context = audioCtx;
     const analyser = new AnalyserNode(audioCtx, {
       fftSize: 512,
     });
@@ -253,6 +255,9 @@ export class PlayWave extends LitElement {
 
   private _playOrPause() {
     if (this.audio.readyState >= 2) {
+      if (this.context !== null && this.context.state === 'suspended') {
+        this.context.resume();
+      }
       this.isPlaying = !this.isPlaying;
       if (this.isPlaying) {
         this.audio.play();
