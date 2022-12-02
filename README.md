@@ -1,7 +1,5 @@
 # Voice Player
 
-> WIP
-
 Voice (audio) player custom element made with lit & vite. ([Online Demo](https://ms-fadaei.github.io/voice-player/))
 
 ## License
