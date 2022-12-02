@@ -1,13 +1,22 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   color: #eee;
   background-color: #1a1a40;
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  font-family: sans-serif;
+}
+
+.page-conteiner {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: sans-serif;
+  flex-direction: column;
+  height: 100vh;
 }
 
 .page-buttons > a {
