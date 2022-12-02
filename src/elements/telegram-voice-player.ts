@@ -158,6 +158,7 @@ export class TelegramVoicePlayer extends LitElement {
   @property({ type: Boolean, attribute: false }) hasError = false;
   @property({ attribute: false }) audio = new Audio();
   @property({ attribute: false }) audioBuffer?: AudioBuffer;
+  @property({ attribute: false }) context: AudioContext | null = null;
 
   override render() {
     return html`
@@ -212,6 +213,7 @@ export class TelegramVoicePlayer extends LitElement {
     // @ts-ignore
     window.AudioContext = window.AudioContext || window.webkitAudioContext;
     const audioContext = new AudioContext();
+    this.context = audioContext;
     fetch(this.src)
       .then((response) => response.arrayBuffer())
       .then((arrayBuffer) => audioContext.decodeAudioData(arrayBuffer))
@@ -334,6 +336,10 @@ export class TelegramVoicePlayer extends LitElement {
 
   private _playOrPause() {
     if (this.audio.readyState >= 2) {
+      if (this.context !== null && this.context.state === 'suspended') {
+        this.context.resume();
+      }
+
       this.isPlaying = !this.isPlaying;
       if (this.isPlaying) {
         this.audio.play();
