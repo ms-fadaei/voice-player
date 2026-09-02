@@ -42,8 +42,8 @@
   },
   "devDependencies": {
     "@types/node": "17.0.17",
-    "@typescript-eslint/eslint-plugin": "5.28.0",
-    "@typescript-eslint/parser": "5.28.0",
+    "@typescript-eslint/eslint-plugin": "5.62.0",
+    "@typescript-eslint/parser": "5.62.0",
     "@vitest/ui": "0.15.1",
     "eslint": "8.18.0",
     "eslint-config-prettier": "8.5.0",
